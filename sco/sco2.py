@@ -22,10 +22,12 @@ df['gashw'] = df['gashw'].apply(change)
 df['airco'] = df['airco'].apply(change)
 df['prefarea'] = df['prefarea'].apply(change)
 
-train = df[41:541]
+df = (df-df.mean())/df.std()
+
+train = df.iloc[41:541]
 #(train,'\n')
 
-test = df[0:40]
+test = df.iloc[0:40]
 #print(test)
 print(train.shape,test.shape)
 result = train['price']
@@ -33,31 +35,17 @@ train.drop("price",axis = 1 , inplace = True)
 G  = np.asmatrix(train.values)
 X = G.astype(float)
 K = np.zeros((X.shape))
-mean = X.mean(0)
-maxx = X.max(0)
-minn = X.min(0)
-#print(maxx)
-for i in range(X.shape[1]):
-	for j in range(X.shape[0]):
-		X[j,i] = float((float(X.item((j,i)))-float(mean.item((0,i))))/(float(maxx.item((0,i)))-float(minn.item((0,i)))))
-#print(X.item((0,0)))
+
 X = np.hstack((np.ones((500,1)) , X))
 Y = np.asmatrix(result.values)
 Y = Y.reshape(500,1)
-mean = Y.mean(0)
-maxx = Y.max(0)
-minn = Y.min(0)
-for i in range(Y.shape[1]):
-	for j in range(Y.shape[0]):
-		Y[j,i] = float((float(Y.item((j,i)))-float(mean.item((0,i))))/(float(maxx.item((0,i)))-float(minn.item((0,i)))))	
-
 
 def linear_theta(X,Y,lamb,l):
 	theta = np.linalg.pinv(np.add(np.transpose(X)@X,lamb*l))@(np.transpose(X)@Y)
 	return theta
 
 def gradient_descent(X,Y,iters):
-	alpha = 2
+	alpha = 0.001
 	Xtrans = X.transpose()
 	theta = np.zeros(X.shape[1])
 	theta = np.asmatrix(theta)
@@ -65,6 +53,7 @@ def gradient_descent(X,Y,iters):
 	for i in range(iters):
 			diffs = np.dot(X,theta)-Y
 			gradient = np.dot(Xtrans,diffs)/len(X)
+			print(theta-(alpha*gradient))
 			theta = theta-(alpha*gradient)
 	return theta
 
@@ -109,10 +98,10 @@ row,col = test.shape
 # 		optimum_lambda = l
 lamb = np.identity(X.shape[1])
 lamb[0][0] = 0
-testo = linear_theta(X,Y,lamb,1)
+testo = linear_theta(X,Y,lamb,10)
 
-theta = gradient_descent(X,Y,10000)	
-print(theta-testo)
+theta = gradient_descent(X,Y,100000)	
+
 cumulative_error = 0
 for i in range(row):
 	predicted = (np.asmatrix(test[i])@theta).item(0,0)	
